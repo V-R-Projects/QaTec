@@ -5,11 +5,11 @@
 Genetic Algorithm Overview
 START
     Creating a Initial Population
-    Selection & Fitness Evaluation
-REPEAT
-    Selection & Fitness Evaluation
+    Fitness Evaluation & Selection 
+REPEAT 
     Crossover
     Mutation
+    Fitness Evaluation & Selection
 UNTIL
     Defined number of generations
 STOP
@@ -129,6 +129,12 @@ two teams and selects the best 6 of each.
 *****************************************
 Crossover
 
+The crossover stage takes a population that
+already passed the selection process, when each 
+team has only the best 6 players of the generation.
+The crossoverPopulation crossover the players and 
+adds 5 new players to each team (product of the crossover)
+producing a new generation.
 *****************************************
 |#
 
@@ -166,10 +172,46 @@ Crossover
   (cons (crossoverTeam (car population)) (list(crossoverTeam (cadr population))))
   )
 
-;(selectPopulation (generatePopulation 2))
-;(crossoverPopulation (selectPopulation (generatePopulation 2)))
-;(crossoverPlayers (generatePlayer 3) (generatePlayer 3))
-;(crossoverTeam (selectionTeam (generateTeam 11)))
-;(list '(0) '(1))
-;(cons '(0) '(1))
-;(append '(0) '(1))
+#|*****************************************
+Mutation
+
+This algorithm takes a random bit from each 
+attribute of each player and mutates it, this 
+happens with the entire population.
+*****************************************
+|#
+
+(define (alterBit bit)
+  (cond
+    ((zero? bit) 1)
+    (else (0))
+    )
+  )
+
+(define (mutateAttribute attribute randomBit) ;; randombit must be an int from 0 to 3
+  (cond
+    ((null? attribute) '())
+    ((zero? randomBit) (cons (alterBit (car attribute))
+                             (mutateAttribute (cdr attribute) (- randomBit 1))))
+    (else (cons (car attribute) 
+                (mutateAttribute (cdr attribute) (- randomBit 1))))
+    )
+  )
+
+(define (mutatePlayer player)
+  (cond
+    ((null? player) '())
+    (else (cons (mutateAttribute (car player) (random 4)) (mutatePlayer (cdr player))))
+    )
+  )
+
+(define (mutateTeam team)
+  (cond
+    ((null? team) '())
+    (else (cons (mutatePlayer (car team)) (mutateTeam (cdr team))))
+    )
+  )
+
+(define (mutatePopulation population)
+  (cons (mutateTeam (car population)) (list (mutateTeam (cadr population))))
+  )
