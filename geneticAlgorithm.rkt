@@ -5,8 +5,8 @@
 Genetic Algorithm Overview
 START
     Creating a Initial Population
-    Fitness Evaluation & Selection 
-REPEAT 
+    Fitness Evaluation & Selection
+REPEAT
     Crossover
     Mutation
     Fitness Evaluation & Selection
@@ -118,7 +118,7 @@ two teams and selects the best 6 of each.
     )
   )
 
-(define (selectPopulation population)
+(define (selectPopulation population) ;; main
   (cond
     ((null? population) '())
     (else (cons (selectionTeam (fitnessTeam (car population))) (selectPopulation (cdr population))))
@@ -130,9 +130,9 @@ two teams and selects the best 6 of each.
 Crossover
 
 The crossover stage takes a population that
-already passed the selection process, when each 
+already passed the selection process, when each
 team has only the best 6 players of the generation.
-The crossoverPopulation crossover the players and 
+The crossoverPopulation crossover the players and
 adds 5 new players to each team (product of the crossover)
 producing a new generation.
 *****************************************
@@ -141,25 +141,25 @@ producing a new generation.
 (define (truncateBits attribute1 attribute2)
   (cond
     ((null? attribute1) '())
-    ((> (lengthList attribute1) 2) 
+    ((> (lengthList attribute1) 2)
      (cons (car attribute1) (truncateBits (cdr attribute1) (cdr attribute2))))
     (else (cons (car attribute2) (truncateBits (cdr attribute1)(cdr attribute2))))
+    )
   )
-)
 
 (define (crossoverPlayers player1 player2)
   (cond
     ((null? player1) '())
-    (else (cons (truncateBits (car player1) (car player2)) 
+    (else (cons (truncateBits (car player1) (car player2))
                 (crossoverPlayers (cdr player1) (cdr player2))))
     )
   )
 
-(define (crossoverSelected bests) ;; 6 bests players 
+(define (crossoverSelected bests) ;; 6 bests players
   (cond
     ((equal? (lengthList bests) 2)
      (list (crossoverPlayers (car bests) (cadr bests))))
-    (else (append (list (crossoverPlayers (car bests) (cadr bests)) (crossoverPlayers (cadr bests) (car bests))) 
+    (else (append (list (crossoverPlayers (car bests) (cadr bests)) (crossoverPlayers (cadr bests) (car bests)))
                   (crossoverSelected (cddr bests)) ))
     )
   )
@@ -168,15 +168,15 @@ producing a new generation.
   (append team (crossoverSelected team))
   )
 
-(define (crossoverPopulation population)
+(define (crossoverPopulation population) ;; main
   (cons (crossoverTeam (car population)) (list(crossoverTeam (cadr population))))
   )
 
 #|*****************************************
 Mutation
 
-This algorithm takes a random bit from each 
-attribute of each player and mutates it, this 
+This algorithm takes a random bit from each
+attribute of each player and mutates it, this
 happens with the entire population.
 *****************************************
 |#
@@ -184,7 +184,7 @@ happens with the entire population.
 (define (alterBit bit)
   (cond
     ((zero? bit) 1)
-    (else (0))
+    (else 0)
     )
   )
 
@@ -193,7 +193,7 @@ happens with the entire population.
     ((null? attribute) '())
     ((zero? randomBit) (cons (alterBit (car attribute))
                              (mutateAttribute (cdr attribute) (- randomBit 1))))
-    (else (cons (car attribute) 
+    (else (cons (car attribute)
                 (mutateAttribute (cdr attribute) (- randomBit 1))))
     )
   )
@@ -212,6 +212,31 @@ happens with the entire population.
     )
   )
 
-(define (mutatePopulation population)
+(define (mutatePopulation population) ;; main
   (cons (mutateTeam (car population)) (list (mutateTeam (cadr population))))
   )
+
+
+
+#|*****************************************
+Main Function
+
+This function recieves a population and applies
+the three steps of the genetic algorithm. It
+returns the new population.
+*****************************************
+|#
+
+(define (geneticAlgorithm population)
+  (mutatePopulation (crossoverPopulation (selectPopulation population)))
+  )
+
+(define (loop population until)
+  (cond
+    ((equal? until 1) (geneticAlgorithm population))
+    (else (loop (geneticAlgorithm population) (- until 1)))
+    )
+  )
+
+(loop '((((0 1 1 1) (1 1 1 0) (1 1 1 0)) ((0 0 1 1) (1 0 1 0) (1 1 1 1)) ((1 1 0 1) (1 0 0 0) (1 0 1 0)) ((0 1 1 0) (0 0 0 1) (1 1 0 1)) ((1 0 0 1) (1 1 1 1) (0 0 0 1)) ((0 0 1 1) (0 1 1 1) (1 0 1 1)) ((1 0 1 1) (1 1 0 1) (1 0 0 1)) ((1 0 1 0) (1 0 0 1) (1 0 0 0)) ((0 1 1 0) (1 1 0 1) (1 0 0 1)) ((1 0 0 0) (1 0 1 1) (1 1 1 0)) ((1 1 1 0) (1 1 1 0) (1 1 1 0))) 
+                    (((1 1 0 1) (1 1 1 1) (1 1 0 0)) ((0 0 1 1) (1 1 1 1) (0 1 1 1)) ((1 0 0 0) (1 0 0 0) (1 1 1 1)) ((0 0 1 0) (1 0 1 0) (1 0 1 0)) ((1 1 0 1) (1 1 1 1) (1 0 0 0)) ((0 1 1 0) (0 1 0 0) (0 0 0 0)) ((1 0 1 0) (0 0 1 0) (0 1 1 1)) ((0 1 0 0) (1 0 1 1) (1 1 1 1)) ((1 0 0 1) (1 1 1 0) (1 0 1 0)) ((0 0 0 0) (1 0 1 0) (1 0 0 1)) ((1 1 0 0) (0 1 1 0) (0 1 0 0)))) 20)
