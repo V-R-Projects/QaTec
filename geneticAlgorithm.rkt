@@ -111,17 +111,17 @@ two teams and selects the best 6 of each.
     (else (+ 1 (lengthList (cdr list)))))
   )
 
-(define (selectionTeam list) ;; selects the first 6 players  of a fitness evaluated team
+(define (selectTeam list) ;; selects the first 6 players  of a fitness evaluated team
   (cond
     ((equal? (lengthList list) 5) '())
-    (else (cons (car list) (selectionTeam (cdr list))))
+    (else (cons (car list) (selectTeam (cdr list))))
     )
   )
 
 (define (selectPopulation population) ;; main
   (cond
     ((null? population) '())
-    (else (cons (selectionTeam (fitnessTeam (car population))) (selectPopulation (cdr population))))
+    (else (cons (selectTeam (fitnessTeam (car population))) (selectPopulation (cdr population))))
     )
   )
 
@@ -141,7 +141,7 @@ producing a new generation.
 (define (truncateBits attribute1 attribute2)
   (cond
     ((null? attribute1) '())
-    ((> (lengthList attribute1) 2)
+    ((> (lengthList attribute1) 2) ; 2 is the half ot the lenght of the attributes
      (cons (car attribute1) (truncateBits (cdr attribute1) (cdr attribute2))))
     (else (cons (car attribute2) (truncateBits (cdr attribute1)(cdr attribute2))))
     )
