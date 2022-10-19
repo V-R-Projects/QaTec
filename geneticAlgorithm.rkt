@@ -72,12 +72,15 @@ fitness evaluation of each player.
 *****************************************
 |#
 
-(define (binToDec list)
-  (+ (* 4 (car list)) (+ (* 2 (cadr list)) (caddr list)))
+(define (binToDec list lenList)
+  (cond
+    ((null? list) 0)
+    (else (+ (* (expt 2 (- lenList 1)) (car list)) (binToDec (cdr list) (- lenList 1))))
+    )
   )
 
 (define (fitnessPlayer list)
-  (quotient (+ (binToDec(car list)) (+ (binToDec(cadr list)) (binToDec(caddr list)))) 3)
+  (quotient (+ (binToDec (car list) 4) (+ (binToDec (cadr list) 4) (binToDec (caddr list) 4))) 3)
   )
 
 (define (filterList condition list)
@@ -227,16 +230,26 @@ returns the new population.
 *****************************************
 |#
 
-(define (geneticAlgorithm population)
-  (mutatePopulation (crossoverPopulation (selectPopulation population)))
-  )
-
-(define (loop population until)
+(define (convert-player-dec player)
   (cond
-    ((equal? until 1) (geneticAlgorithm population))
-    (else (loop (geneticAlgorithm population) (- until 1)))
+    ((null? player) '())
+    (else (cons (binToDec (car player) 4) (convert-player-dec (cdr player))))
     )
   )
 
-(loop '((((0 1 1 1) (1 1 1 0) (1 1 1 0)) ((0 0 1 1) (1 0 1 0) (1 1 1 1)) ((1 1 0 1) (1 0 0 0) (1 0 1 0)) ((0 1 1 0) (0 0 0 1) (1 1 0 1)) ((1 0 0 1) (1 1 1 1) (0 0 0 1)) ((0 0 1 1) (0 1 1 1) (1 0 1 1)) ((1 0 1 1) (1 1 0 1) (1 0 0 1)) ((1 0 1 0) (1 0 0 1) (1 0 0 0)) ((0 1 1 0) (1 1 0 1) (1 0 0 1)) ((1 0 0 0) (1 0 1 1) (1 1 1 0)) ((1 1 1 0) (1 1 1 0) (1 1 1 0))) 
-                    (((1 1 0 1) (1 1 1 1) (1 1 0 0)) ((0 0 1 1) (1 1 1 1) (0 1 1 1)) ((1 0 0 0) (1 0 0 0) (1 1 1 1)) ((0 0 1 0) (1 0 1 0) (1 0 1 0)) ((1 1 0 1) (1 1 1 1) (1 0 0 0)) ((0 1 1 0) (0 1 0 0) (0 0 0 0)) ((1 0 1 0) (0 0 1 0) (0 1 1 1)) ((0 1 0 0) (1 0 1 1) (1 1 1 1)) ((1 0 0 1) (1 1 1 0) (1 0 1 0)) ((0 0 0 0) (1 0 1 0) (1 0 0 1)) ((1 1 0 0) (0 1 1 0) (0 1 0 0)))) 20)
+(define (convert-team-dec team)
+  (cond
+    ((null? team) '())
+    (else (cons (convert-player-dec (car team)) (convert-team-dec (cdr team))))
+    )
+  )
+
+(define (convert-population population)
+  (list (convert-team-dec (car population)) (convert-team-dec (cadr population)))
+)
+
+(define (geneticAlgorithm population)
+  (convert-population (mutatePopulation (crossoverPopulation (selectPopulation population))))
+  )
+
+(geneticAlgorithm (generatePopulation 2))
